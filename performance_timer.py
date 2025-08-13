@@ -38,7 +38,7 @@ class PerformanceTimer:
         """CSVファイルのヘッダーを作成"""
         with open(self.csv_filename, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['開始時刻', '終了時刻', '所要時間(秒)', '操作', '回数', '記録日時'])
+            writer.writerow(['開始時刻', '終了時刻', '所要時間(秒)', '操作', '回数'])
     
     def _round_to_tenth(self, timestamp: float) -> float:
         """
@@ -103,8 +103,7 @@ class PerformanceTimer:
             'end_time': self._format_timestamp(self.end_time),
             'duration': str(duration),
             'operation': self.operation or "",
-            'iteration': str(self.iteration) if self.iteration is not None else "",
-            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            'iteration': str(self.iteration) if self.iteration is not None else ""
         }
         self.records.append(record)
         
@@ -135,8 +134,7 @@ class PerformanceTimer:
                 record['end_time'],
                 record['duration'],
                 record['operation'],
-                record['iteration'],
-                record['timestamp']
+                record['iteration']
             ])
     
     def get_all_records(self) -> List[Dict[str, str]]:
