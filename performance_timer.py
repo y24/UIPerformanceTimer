@@ -26,7 +26,7 @@ class PerformanceTimer:
         self.csv_filename = csv_filename
         self.start_time: Optional[float] = None
         self.end_time: Optional[float] = None
-        self.description: Optional[str] = None
+        self.operation: Optional[str] = None
         self.iteration: Optional[int] = None
         self.records: List[Dict[str, str]] = []
         
@@ -38,7 +38,7 @@ class PerformanceTimer:
         """CSVファイルのヘッダーを作成"""
         with open(self.csv_filename, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['開始時刻', '終了時刻', '所要時間(秒)', '操作説明', '回数', '記録日時'])
+            writer.writerow(['開始時刻', '終了時刻', '所要時間(秒)', '操作', '回数', '記録日時'])
     
     def _round_to_tenth(self, timestamp: float) -> float:
         """
@@ -67,21 +67,21 @@ class PerformanceTimer:
         milliseconds = int((timestamp % 1) * 10)  # 0.1秒単位
         return dt.strftime('%Y-%m-%d %H:%M:%S') + f'.{milliseconds}'
     
-    def start(self, desc: str = "", iteration: Optional[int] = None):
+    def start(self, operation: str = "", iteration: Optional[int] = None):
         """
         タイマーを開始
         
         Args:
-            desc (str): 操作の説明
+            operation (str): 操作
             iteration (Optional[int]): 操作の回数（1, 2, 3...）。指定すると説明に含められます
         """
         self.start_time = self._round_to_tenth(time.time())
         self.iteration = iteration
-        self.description = desc
+        self.operation = operation
             
         self.end_time = None
         formatted_time = self._format_timestamp(self.start_time)
-        print(f"タイマー開始: {self.description} (時刻: {formatted_time})")
+        print(f"タイマー開始: {self.operation} (時刻: {formatted_time})")
     
     def stop(self) -> Optional[float]:
         """
@@ -102,13 +102,13 @@ class PerformanceTimer:
             'start_time': self._format_timestamp(self.start_time),
             'end_time': self._format_timestamp(self.end_time),
             'duration': str(duration),
-            'description': self.description or "",
+            'operation': self.operation or "",
             'iteration': str(self.iteration) if self.iteration is not None else "",
             'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
         self.records.append(record)
         
-        print(f"タイマー停止: {self.description} (所要時間: {duration}秒)")
+        print(f"タイマー停止: {self.operation} (所要時間: {duration}秒)")
         
         # CSVに即座に出力
         self._write_to_csv(record)
@@ -116,7 +116,7 @@ class PerformanceTimer:
         # リセット
         self.start_time = None
         self.end_time = None
-        self.description = None
+        self.operation = None
         self.iteration = None
         
         return duration
@@ -134,7 +134,7 @@ class PerformanceTimer:
                 record['start_time'],
                 record['end_time'],
                 record['duration'],
-                record['description'],
+                record['operation'],
                 record['iteration'],
                 record['timestamp']
             ])
@@ -165,14 +165,14 @@ class PerformanceTimer:
         
         with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['開始時刻', '終了時刻', '所要時間(秒)', '操作説明', '回数'])
+            writer.writerow(['開始時刻', '終了時刻', '所要時間(秒)', '操作', '回数'])
             
             for record in self.records:
                 writer.writerow([
                     record['start_time'],
                     record['end_time'],
                     record['duration'],
-                    record['description'],
+                    record['operation'],
                     record['iteration']
                 ])
         
@@ -185,20 +185,20 @@ if __name__ == "__main__":
     timer = PerformanceTimer()
     
     # 基本的なテスト実行
-    timer.start(desc="画面の保存")
+    timer.start(operation="画面の保存")
     time.sleep(1.5)  # 1.5秒待機（実際の操作をシミュレート）
     timer.stop()
     
-    timer.start(desc="データの読み込み")
+    timer.start(operation="データの読み込み")
     time.sleep(0.8)  # 0.8秒待機
     timer.stop()
     
     # 複数回の同じ操作を記録する例
     for i in range(1, 4):  # 1回目、2回目、3回目
-        timer.start(desc="ファイル処理", iteration=i)
+        timer.start(operation="ファイル処理", iteration=i)
         time.sleep(0.5 + i * 0.2)  # 回数に応じて時間が変わる
         timer.stop()
     
     print("すべての記録:")
     for record in timer.get_all_records():
-        print(f"  {record['description']}: {record['duration']}秒")
+        print(f"  {record['operation']}: {record['duration']}秒")
